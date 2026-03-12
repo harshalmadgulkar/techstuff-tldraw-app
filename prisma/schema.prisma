@@ -1,15 +1,50 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
-  provider = "prisma-client"
-  output   = "../app/generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  username  String   @unique
+  createdAt DateTime @default(now())
+
+  ownedProjects Project[]
+  memberships   ProjectMember[]
+}
+
+model Project {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  ownerId     String
+  createdAt   DateTime @default(now())
+
+  owner       User     @relation(fields: [ownerId], references: [id])
+  members     ProjectMember[]
+  whiteboards Whiteboard[]
+}
+
+model ProjectMember {
+  id        String @id @default(uuid())
+  projectId String
+  userId    String
+
+  project Project @relation(fields: [projectId], references: [id])
+  user    User    @relation(fields: [userId], references: [id])
+
+  @@unique([projectId, userId])
+}
+
+model Whiteboard {
+  id          String   @id @default(uuid())
+  name        String
+  projectId   String
+  canvasState Json?
+  createdAt   DateTime @default(now())
+
+  project Project @relation(fields: [projectId], references: [id])
 }
