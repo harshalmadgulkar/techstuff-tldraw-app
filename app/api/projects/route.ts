@@ -1,7 +1,12 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getUserId } from "@/lib/getUser";
-import { isProjectOwner } from "@/lib/projectAccess";
+import { z } from "zod";
+
+const createProjectSchema = z.object({
+  name: z.string().min(1),
+  description: z.string().optional(),
+});
 
 export async function GET() {
   const userId = await getUserId();
@@ -36,44 +41,21 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const body = await req.json();
+  let data;
+  try {
+    const body = await req.json();
+    data = createProjectSchema.parse(body);
+  } catch {
+    return NextResponse.json({ error: "Invalid data" }, { status: 400 });
+  }
 
   const project = await prisma.project.create({
     data: {
-      name: body.name,
-      description: body.description,
+      name: data.name,
+      description: data.description,
       ownerId: userId,
     },
   });
 
   return NextResponse.json({ project });
 }
-
-export async function DELETE(
-  req: Request,
-  { params }: { params: Promise<{ id: string; }>; }
-) {
-  const { id } = await params;
-
-  const userId = await getUserId();
-
-  if (!userId) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  const owner = await isProjectOwner(userId, id);
-
-  if (!owner) {
-    return NextResponse.json(
-      { error: "Only owner can delete project" },
-      { status: 403 }
-    );
-  }
-
-  await prisma.project.delete({
-    where: { id }
-  });
-
-  return NextResponse.json({ success: true });
-}
-
