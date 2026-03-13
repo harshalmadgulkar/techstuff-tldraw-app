@@ -53,47 +53,47 @@ export default function Dashboard() {
     }, []);
 
     return (
-        <div className="min-h-screen bg-gray-50 px-6 py-10">
+        <div className="min-h-screen px-6 py-10">
             <div className="mx-auto max-w-4xl space-y-8">
                 <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
-                    <h1 className="text-3xl font-semibold tracking-tight text-gray-900">
+                    <h1 className="text-3xl font-semibold tracking-tight">
                         Projects
                     </h1>
 
                     <form
                         onSubmit={createProject}
-                        className="flex w-full max-w-xl items-center gap-3 rounded-full bg-white px-4 py-2 shadow-sm ring-1 ring-gray-200"
+                        className="flex w-full max-w-xl items-center gap-3 rounded-full px-4 py-2 shadow-sm ring-1 ring-gray-200"
                     >
                         <input
                             value={name}
                             onChange={(e) => setName(e.target.value)}
                             placeholder="Project name"
-                            className="w-40 flex-1 bg-transparent text-black text-sm outline-none placeholder:text-gray-400"
+                            className="w-40 flex-1 bg-transparent text-sm outline-none placeholder:text-gray-400"
                         />
                         <input
                             value={description}
                             onChange={(e) => setDescription(e.target.value)}
                             placeholder="Description (optional)"
-                            className="hidden flex-1 bg-transparent text-black text-sm outline-none placeholder:text-gray-400 sm:block"
+                            className="hidden flex-1 bg-transparent text-sm outline-none placeholder:text-gray-400 sm:block"
                         />
                         <button
                             type="submit"
                             disabled={!name.trim()}
-                            className="rounded-full bg-black px-4 py-1.5 text-sm font-medium text-white disabled:cursor-not-allowed disabled:bg-gray-300"
+                            className="rounded-full bg-white text-black px-4 py-1.5 text-sm font-medium cursor-pointer disabled:cursor-not-allowed disabled:bg-gray-500"
                         >
                             Create
                         </button>
                     </form>
                 </div>
 
-                <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-gray-200 sm:p-6">
+                <div className="rounded-2xl p-4 shadow-sm ring-1 ring-gray-200 sm:p-6">
                     {loading ? (
-                        <div className="flex items-center justify-center py-10 text-sm text-gray-500">
+                        <div className="flex items-center justify-center py-10 text-sm">
                             Loading projects...
                         </div>
                     ) : projects.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center gap-2 py-10 text-center text-sm text-gray-500">
-                            <p className="font-medium text-gray-700">No projects yet</p>
+                        <div className="flex flex-col items-center justify-center gap-2 py-10 text-center text-sm">
+                            <p className="font-medium">No projects yet</p>
                             <p>Create your first project using the field above.</p>
                         </div>
                     ) : (
@@ -101,18 +101,18 @@ export default function Dashboard() {
                             {projects.map((p) => (
                                 <li
                                     key={p.id}
-                                    className="group flex items-center justify-between rounded-xl border border-gray-200 bg-gray-50/60 px-4 py-3 transition hover:bg-white hover:shadow-sm"
+                                    className="group flex items-center justify-between rounded-xl border border-gray-200 px-4 py-3 transition hover:bg-white hover:shadow-sm hover:text-black"
                                 >
                                     <Link
                                         href={`/project/${p.id}`}
                                         className="flex justify-between w-full text-sm"
                                     >
                                         <div className="flex flex-col">
-                                            <span className="font-semibold text-gray-900 group-hover:underline">
+                                            <span className="font-semibold group-hover:underline">
                                                 {p.name}
                                             </span>
                                             {p.description && (
-                                                <span className="mt-0.5 text-sm text-gray-500">
+                                                <span className="mt-0.5 text-sm">
                                                     {p.description}
                                                 </span>
                                             )}

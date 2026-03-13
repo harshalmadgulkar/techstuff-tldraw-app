@@ -91,16 +91,14 @@ export default function ProjectPage({
   }, [projectId]);
 
   return (
-    <div className="min-h-screen bg-gray-50 px-6 py-10">
+    <div className="min-h-screen px-6 py-10">
       <div className="mx-auto max-w-4xl space-y-8">
 
-        {/* Page Header */}
-        <h1 className="text-3xl font-semibold text-gray-900">
+        <h1 className="text-3xl font-semibold">
           Project Workspace
         </h1>
 
-        {/* Create Whiteboard */}
-        <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-gray-200">
+        <div className="rounded-2xl p-5 shadow-sm ring-1 ring-gray-200">
           <div className="flex items-center gap-3">
             <input
               value={name}
@@ -111,16 +109,16 @@ export default function ProjectPage({
 
             <button
               onClick={createWhiteboard}
-              className="rounded-lg bg-black px-4 py-2 text-sm font-medium text-white hover:bg-gray-800"
+              disabled={!name.trim()}
+              className="rounded-lg bg-white text-black px-4 py-2 text-sm font-medium cursor-pointer hover:bg-gray-100 disabled:cursor-not-allowed disabled:bg-gray-500"
             >
               Create
             </button>
           </div>
         </div>
 
-        {/* Share Project */}
-        <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-gray-200">
-          <h2 className="mb-3 text-sm font-semibold text-gray-700">
+        <div className="rounded-2xl p-5 shadow-sm ring-1 ring-gray-200">
+          <h2 className="mb-3 text-sm font-semibold">
             Share Project
           </h2>
 
@@ -129,7 +127,7 @@ export default function ProjectPage({
               value={shareUser}
               onChange={(e) => setShareUser(e.target.value)}
               placeholder="Username"
-              className="flex-1 rounded-lg text-black border border-gray-200 px-3 py-2 text-sm outline-none"
+              className="flex-1 rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none"
             />
 
             <button
@@ -141,15 +139,14 @@ export default function ProjectPage({
           </div>
         </div>
 
-        {/* Whiteboards List */}
-        <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-gray-200">
+        <div className="rounded-2xl p-5 shadow-sm ring-1 ring-gray-200">
 
           {loading ? (
-            <div className="py-10 text-center text-sm text-gray-500">
+            <div className="py-10 text-center text-sm">
               Loading whiteboards...
             </div>
           ) : whiteboards.length === 0 ? (
-            <div className="py-10 text-center text-sm text-gray-500">
+            <div className="py-10 text-center text-sm">
               No whiteboards yet
             </div>
           ) : (
@@ -157,18 +154,18 @@ export default function ProjectPage({
               {whiteboards.map((board) => (
                 <li
                   key={board.id}
-                  className="flex items-center justify-between rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 hover:bg-white hover:shadow-sm"
+                  className="flex items-center justify-between rounded-xl border border-gray-200 px-4 py-3 hover:bg-white hover:shadow-sm hover:text-black cursor-pointer"
                 >
                   <Link
                     href={`/whiteboard/${board.id}`}
-                    className="font-medium text-gray-900 hover:underline"
+                    className="font-medium hover:underline w-full"
                   >
                     {board.name}
                   </Link>
 
                   <button
                     onClick={() => deleteWhiteboard(board.id)}
-                    className="text-sm text-red-500 hover:underline"
+                    className="text-sm text-red-500 hover:underline cursor-pointer"
                   >
                     Delete
                   </button>
