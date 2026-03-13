@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getUserId } from "@/lib/getUser";
+import { canAccessProject } from "@/lib/projectAccess";
 
 export async function GET(req: Request) {
     const userId = await getUserId();
@@ -13,15 +14,20 @@ export async function GET(req: Request) {
     const projectId = searchParams.get("projectId");
 
     if (!projectId) {
-        return NextResponse.json({ error: "projectId required" }, { status: 400 });
+        return NextResponse.json({ error: "Missing projectId" }, { status: 400 });
     }
 
-    const whiteboards = await prisma.whiteboard.findMany({
-        where: { projectId },
-        orderBy: { createdAt: "desc" },
+    const allowed = await canAccessProject(userId, projectId);
+
+    if (!allowed) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    const boards = await prisma.whiteboard.findMany({
+        where: { projectId }
     });
 
-    return NextResponse.json({ whiteboards });
+    return NextResponse.json({ whiteboards: boards });
 }
 
 export async function POST(req: Request) {

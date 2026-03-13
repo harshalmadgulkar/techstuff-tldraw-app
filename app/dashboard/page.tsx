@@ -2,10 +2,11 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { Project } from "@prisma/client";
 
 export default function Dashboard() {
     const [name, setName] = useState("");
-    const [projects, setProjects] = useState([]);
+    const [projects, setProjects] = useState<Project[]>([]);
 
     async function fetchProjects() {
         const res = await fetch("/api/projects");
@@ -29,7 +30,13 @@ export default function Dashboard() {
     }
 
     useEffect(() => {
-        fetchProjects();
+        async function loadProjects() {
+            const res = await fetch("/api/projects");
+            const data = await res.json();
+            setProjects(data.projects);
+        }
+
+        loadProjects();
     }, []);
 
     return (
@@ -53,10 +60,10 @@ export default function Dashboard() {
             </div>
 
             <ul>
-                {projects.map((p: any) => (
+                {projects.map((p) => (
                     <li key={p.id} className="border p-3 mb-2">
                         <Link href={`/project/${p.id}`}>
-                            {p.name}
+                            {p.name} — Owner: {p.owner.username}
                         </Link>
                     </li>
                 ))}

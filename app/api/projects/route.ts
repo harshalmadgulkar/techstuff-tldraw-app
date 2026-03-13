@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getUserId } from "@/lib/getUser";
+import { isProjectOwner } from "@/lib/projectAccess";
 
 export async function GET() {
   const userId = await getUserId();
@@ -15,13 +16,14 @@ export async function GET() {
         { ownerId: userId },
         {
           members: {
-            some: {
-              userId: userId,
-            },
-          },
-        },
-      ],
+            some: { userId }
+          }
+        }
+      ]
     },
+    include: {
+      owner: true
+    }
   });
 
   return NextResponse.json({ projects });
@@ -47,25 +49,29 @@ export async function POST(req: Request) {
   return NextResponse.json({ project });
 }
 
-export async function DELETE(req: Request) {
+export async function DELETE(
+  req: Request,
+  { params }: { params: Promise<{ id: string; }>; }
+) {
+  const { id } = await params;
+
   const userId = await getUserId();
 
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const body = await req.json();
+  const owner = await isProjectOwner(userId, id);
 
-  const project = await prisma.project.findUnique({
-    where: { id: body.projectId },
-  });
-
-  if (project?.ownerId !== userId) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (!owner) {
+    return NextResponse.json(
+      { error: "Only owner can delete project" },
+      { status: 403 }
+    );
   }
 
   await prisma.project.delete({
-    where: { id: body.projectId },
+    where: { id }
   });
 
   return NextResponse.json({ success: true });

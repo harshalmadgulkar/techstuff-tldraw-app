@@ -9,6 +9,7 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string; 
 
   const [whiteboards, setWhiteboards] = useState<Whiteboard[]>([]);
   const [name, setName] = useState("");
+  const [shareUser, setShareUser] = useState("");
 
   async function createWhiteboard() {
     if (!name.trim()) return;
@@ -25,6 +26,26 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string; 
 
     if (res.ok) {
       setName("");
+    }
+  }
+
+  async function shareProject() {
+    const res = await fetch("/api/projects/share", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        projectId,
+        username: shareUser
+      })
+    });
+
+    if (res.ok) {
+      alert("Project shared");
+      setShareUser("");
+    } else {
+      alert("User not found");
     }
   }
 
@@ -54,7 +75,6 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string; 
 
       {/* Create Whiteboard */}
       <div className="mb-6">
-
         <input
           value={name}
           onChange={(e) => setName(e.target.value)}
@@ -71,8 +91,23 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string; 
 
       </div>
 
-      {/* Whiteboard List */}
+      <div className="mb-6">
+        <input
+          value={shareUser}
+          onChange={(e) => setShareUser(e.target.value)}
+          placeholder="Username to share"
+          className="border p-2 mr-2"
+        />
 
+        <button
+          onClick={shareProject}
+          className="bg-blue-600 text-white px-4 py-2"
+        >
+          Share
+        </button>
+      </div>
+
+      {/* Whiteboard List */}
       {whiteboards.length === 0 ?
         (
           <p>No whiteboards yet</p>
