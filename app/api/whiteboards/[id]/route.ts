@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { getUserId } from "@/lib/getUser";
 import { canAccessProject } from "@/lib/projectAccess";
@@ -8,25 +9,44 @@ const updateWhiteboardSchema = z.object({
   data: z.unknown(),
 });
 
-async function assertAccess(id: string) {
+type AccessResult =
+  | {
+    userId: string;
+    whiteboard: {
+      id: string;
+      projectId: string;
+    };
+  }
+  | {
+    error: {
+      message: string;
+      status: number;
+    };
+  };
+
+async function assertAccess(id: string): Promise<AccessResult> {
   const userId = await getUserId();
 
   if (!userId) {
-    return { error: { error: "Unauthorized", status: 401 as const } };
+    return { error: { message: "Unauthorized", status: 401 } };
   }
 
   const whiteboard = await prisma.whiteboard.findUnique({
     where: { id },
+    select: {
+      id: true,
+      projectId: true,
+    },
   });
 
   if (!whiteboard) {
-    return { error: { error: "Whiteboard not found", status: 404 as const } };
+    return { error: { message: "Whiteboard not found", status: 404 } };
   }
 
   const allowed = await canAccessProject(userId, whiteboard.projectId);
 
   if (!allowed) {
-    return { error: { error: "Forbidden", status: 403 as const } };
+    return { error: { message: "Forbidden", status: 403 } };
   }
 
   return { userId, whiteboard };
@@ -34,38 +54,43 @@ async function assertAccess(id: string) {
 
 export async function GET(
   _req: Request,
-  context: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string; }>; }
 ) {
-  const { id } = await context.params;
+  const { id } = await params;
 
   const result = await assertAccess(id);
+
   if ("error" in result) {
     return NextResponse.json(
-      { error: result.error.error },
+      { error: result.error.message },
       { status: result.error.status }
     );
   }
 
-  const { whiteboard } = result;
+  const whiteboard = await prisma.whiteboard.findUnique({
+    where: { id },
+  });
 
   return NextResponse.json({ whiteboard });
 }
 
 export async function PUT(
   req: Request,
-  context: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string; }>; }
 ) {
-  const { id } = await context.params;
+  const { id } = await params;
 
   const result = await assertAccess(id);
+
   if ("error" in result) {
     return NextResponse.json(
-      { error: result.error.error },
+      { error: result.error.message },
       { status: result.error.status }
     );
   }
 
   let data;
+
   try {
     const body = await req.json();
     data = updateWhiteboardSchema.parse(body);
@@ -76,7 +101,7 @@ export async function PUT(
   const whiteboard = await prisma.whiteboard.update({
     where: { id },
     data: {
-      canvasState: data.data,
+      canvasState: data.data as Prisma.InputJsonValue,
     },
   });
 
@@ -85,14 +110,15 @@ export async function PUT(
 
 export async function DELETE(
   _req: Request,
-  context: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string; }>; }
 ) {
-  const { id } = await context.params;
+  const { id } = await params;
 
   const result = await assertAccess(id);
+
   if ("error" in result) {
     return NextResponse.json(
-      { error: result.error.error },
+      { error: result.error.message },
       { status: result.error.status }
     );
   }

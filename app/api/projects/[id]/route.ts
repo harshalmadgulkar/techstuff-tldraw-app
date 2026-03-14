@@ -11,15 +11,15 @@ const updateProjectSchema = z.object({
 
 export async function GET(
   _req: Request,
-  context: { params: { id: string } }
+  { params }: { params: Promise<{ id: string; }>; }
 ) {
+  const { id } = await params;
+
   const userId = await getUserId();
 
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-
-  const { id } = context.params;
 
   const allowed = await canAccessProject(userId, id);
 
@@ -32,31 +32,25 @@ export async function GET(
     include: {
       owner: true,
       members: {
-        include: {
-          user: true,
-        },
+        include: { user: true },
       },
     },
   });
-
-  if (!project) {
-    return NextResponse.json({ error: "Project not found" }, { status: 404 });
-  }
 
   return NextResponse.json({ project });
 }
 
 export async function PATCH(
   req: Request,
-  context: { params: { id: string } }
+  { params }: { params: Promise<{ id: string; }>; }
 ) {
+  const { id } = await params;
+
   const userId = await getUserId();
 
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-
-  const { id } = context.params;
 
   const owner = await isProjectOwner(userId, id);
 
@@ -68,6 +62,7 @@ export async function PATCH(
   }
 
   let data;
+
   try {
     const body = await req.json();
     data = updateProjectSchema.parse(body);
@@ -85,15 +80,15 @@ export async function PATCH(
 
 export async function DELETE(
   _req: Request,
-  context: { params: { id: string } }
+  { params }: { params: Promise<{ id: string; }>; }
 ) {
+  const { id } = await params;
+
   const userId = await getUserId();
 
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-
-  const { id } = context.params;
 
   const owner = await isProjectOwner(userId, id);
 
@@ -110,4 +105,3 @@ export async function DELETE(
 
   return NextResponse.json({ success: true });
 }
-
