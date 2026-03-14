@@ -274,7 +274,7 @@ JWT_SECRET
 ### Live URL
 
 ```
-https://your-app-url.vercel.app
+https://techstuff-tldraw-app.vercel.app/
 ```
 
 ---
